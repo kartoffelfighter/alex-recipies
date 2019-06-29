@@ -1,5 +1,5 @@
 <template>
-  <v-app>
+  <v-app >
     <v-container grid-list-md class="app">
       <v-toolbar app>
         <toolbar />

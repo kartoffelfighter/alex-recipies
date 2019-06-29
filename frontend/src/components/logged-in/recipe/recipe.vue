@@ -46,27 +46,49 @@
                           <v-flex xs2>
                             <v-select :items="units" value="n.unit" label="Einheit"></v-select>
                           </v-flex>
-                          <v-flex xs1>
-                            <v-btn icon color="red lighten-3" @click="removeComponent">
-                              <v-icon>close</v-icon>
-                            </v-btn>
-                          </v-flex>
+                          <v-flex xs1></v-flex>
                         </v-layout>
                       </v-container>
                     </v-list>
                   </v-form>
+                  <v-card-actions v-if="edit">
+                    <v-spacer></v-spacer>
+                  <v-btn @click="addComponent()">
+                    <v-icon>add</v-icon>
+                  </v-btn>
+                  <v-btn color="red lighten-2" @click="clearComponent()">
+                    <v-icon>clear</v-icon>
+                  </v-btn>
+                  <v-btn @click="removeComponent()">
+                    <v-icon>remove</v-icon>
+                  </v-btn>
+                  <v-spacer></v-spacer>
+                  </v-card-actions>
+                  
                 </v-card>
               </v-flex>
               <v-flex xs12>
-                <p>Zeit gesamt: {} Zubereitung: {} Im Ofen/Topf: {}</p>
+                <p v-if="!edit">Zeit gesamt: {{(timings.prep + timings.oven)/60}}h Zubereitung: {{timings.prep}}min Im Ofen/Topf: {{timings.oven}}min</p>
+                <v-form v-else >
+                  <v-layout row wrap>
+                   <v-flex xs3>
+                      <v-text-field @change="addComponent" append="min" label="Zubereitung (min)" :value="timings.prep"></v-text-field> 
+                   </v-flex>
+                  <v-flex xs3>
+                    <v-text-field @change="addComponent" label="Kochzeit (min)" append="min" :value="timings.oven"></v-text-field>
+                  </v-flex>
+                  </v-layout>
+                  
+                  
+                </v-form>
               </v-flex>
-              <v-flex xs12>
+              <v-flex v-if="!edit" xs12>
                 <h2>Zubereitung</h2>
-                <v-list class="teal darken-2">
-                  <v-list-tile v-for=" n in steps" :key="n">
-                    <v-list-tile-content>{{n.text}}</v-list-tile-content>
-                  </v-list-tile>
-                </v-list>
+               <div v-html="steps"></div>
+              </v-flex>
+              <v-flex v-else xs12>
+                <h2>Zubereitung</h2>
+                <vue-editor v-model="steps"></vue-editor>
               </v-flex>
             </v-layout>
             <v-btn absolute dark top right color="grey" icon @click="this.toggleEdit">
@@ -94,10 +116,10 @@ export default {
       { name: "Zucker", amount: "450", unit: "g" },
       { name: "Mehl", amount: "1", unit: "kg" }
     ],
-    steps: {
-      1: { text: "blabla" },
-      2: { text: "blabla" },
-      3: { text: "blabla" }
+    steps: "This is where your text is",
+    timings: {
+      prep: 40,
+      oven: 80
     },
     breadcrumbs: [
       {
@@ -142,6 +164,12 @@ export default {
     addComponent() {
       let componentDummy = { name: "", amount: "", unit: "" };
       this.components.push(componentDummy);
+    },
+    clearComponent() {
+      do{
+        this.removeComponent();
+      }while(this.components.length > 1);
+      this.removeComponent(); // call again to add a empty component again
     }
   }
 };
