@@ -47,9 +47,10 @@
                             <v-select :items="units" value="n.unit" label="Einheit"></v-select>
                           </v-flex>
                           <v-flex xs1>
-                            <v-btn icon color="red lighten-3" @click="removeComponent"><v-icon>close</v-icon></v-btn>
+                            <v-btn icon color="red lighten-3" @click="removeComponent">
+                              <v-icon>close</v-icon>
+                            </v-btn>
                           </v-flex>
-
                         </v-layout>
                       </v-container>
                     </v-list>
@@ -134,15 +135,14 @@ export default {
     },
     removeComponent() {
       this.components.pop();
-      if(this.components.length == 0){
-      this.addComponent();
+      if (this.components.length == 0) {
+        this.addComponent();
       }
     },
     addComponent() {
-      let componentDummy = {name: "", amount: "", unit: ""};
+      let componentDummy = { name: "", amount: "", unit: "" };
       this.components.push(componentDummy);
     }
-
   }
 };
 </script>
