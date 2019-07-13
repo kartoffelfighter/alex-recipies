@@ -1,12 +1,12 @@
 <template>
-  <div>
+  <v-container grid-list-xs>
     <v-layout row wrap>
       <v-flex xs12>
         <subtoolbar/>
         <searchbox/>
       </v-flex>
     </v-layout>
-  </div>
+  </v-container>
 </template>
 
 <script>
