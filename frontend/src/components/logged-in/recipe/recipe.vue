@@ -1,10 +1,26 @@
 <template>
-  <v-container>
+  <v-container grid-list-md>
     <!--  <v-breadcrumbs :items="breadcrumbs" divider=">"></v-breadcrumbs>-->
     <v-layout row wrap>
       <v-flex xs12>
-        <v-card color="teal lighten-2" dark>
-          <v-card-title class="headline teal lighten-3">
+        <v-system-bar window dark v-if="!dialog">
+          <router-link v-if="!dialog" to="/dashboard">
+            <v-btn icon>
+              <v-icon >arrow_back</v-icon>
+              
+            </v-btn>
+          </router-link>
+          <v-btn v-else icon @clicked="this.$emit(dialog, false)">
+            <v-icon>close</v-icon>
+          </v-btn>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="this.toggleEdit">
+            <v-icon v-if="!edit">settings</v-icon>
+            <v-icon v-else>save</v-icon>
+          </v-btn>
+        </v-system-bar>
+        <v-card color="blue-grey lighten-2" dark>
+          <v-card-title class="headline blue-grey lighten-3">
             <v-form v-if="edit">
               <v-text-field :counter="25" label="Titel" :value="recipeName" required></v-text-field>
             </v-form>
@@ -18,27 +34,28 @@
                   <v-text-field label="URL zum Bild" :value="name"></v-text-field>
                 </v-form>
               </v-flex>
+              <v-spacer></v-spacer>
               <v-flex xs6>
-                <v-card flat color="teal darken-2">
+                <v-card flat color="blue-grey darken-2">
                   <v-card-title dense>Zutaten</v-card-title>
                   <v-divider></v-divider>
-                  <v-list v-if="!edit" class="teal darken-1">
-                    <v-list-tile v-for="n in components" :key="n">
+                  <v-list v-if="!edit" class="blue-grey darken-1">
+                    <v-list-tile v-for="n in ingredients" :key="n">
                       <v-list-tile-content>{{n.name}}</v-list-tile-content>
                       <v-list-tile-content class="align-end">{{ n.amount }} {{n.unit}}</v-list-tile-content>
                     </v-list-tile>
                   </v-list>
                   <v-form v-else>
-                    <v-list class="teal darken-1">
+                    <v-list class="blue-grey darken-1">
                       <v-container
-                        v-for="n in components"
+                        v-for="n in ingredients"
                         :key="n"
                         grid-list-xs
                         style="margin-top: -3.5%;"
                       >
                         <v-layout row wrap>
                           <v-flex xs7>
-                            <v-text-field @change="addComponent" label="Zutat" :value="n.name"></v-text-field>
+                            <v-text-field @change="addIngredient()" label="Zutat" :value="n.name"></v-text-field>
                           </v-flex>
                           <v-flex xs2>
                             <v-text-field label="Menge" :value="n.amount"></v-text-field>
@@ -53,48 +70,53 @@
                   </v-form>
                   <v-card-actions v-if="edit">
                     <v-spacer></v-spacer>
-                  <v-btn @click="addComponent()">
-                    <v-icon>add</v-icon>
-                  </v-btn>
-                  <v-btn color="red lighten-2" @click="clearComponent()">
-                    <v-icon>clear</v-icon>
-                  </v-btn>
-                  <v-btn @click="removeComponent()">
-                    <v-icon>remove</v-icon>
-                  </v-btn>
-                  <v-spacer></v-spacer>
+                    <v-btn @click="addIngredient()">
+                      <v-icon>add</v-icon>
+                    </v-btn>
+                    <v-btn color="red lighten-2" @click="clearIngredient()">
+                      <v-icon>clear</v-icon>
+                    </v-btn>
+                    <v-btn @click="removeIngredient()">
+                      <v-icon>remove</v-icon>
+                    </v-btn>
+                    <v-spacer></v-spacer>
                   </v-card-actions>
-                  
                 </v-card>
               </v-flex>
               <v-flex xs12>
-                <p v-if="!edit">Zeit gesamt: {{(timings.prep + timings.oven)/60}}h Zubereitung: {{timings.prep}}min Im Ofen/Topf: {{timings.oven}}min</p>
-                <v-form v-else >
+                <p
+                  v-if="!edit"
+                >Zeit gesamt: {{(timings.prep + timings.oven)/60}}h Zubereitung: {{timings.prep}}min Im Ofen/Topf: {{timings.oven}}min</p>
+                <v-form v-else>
                   <v-layout row wrap>
-                   <v-flex xs3>
-                      <v-text-field @change="addComponent" append="min" label="Zubereitung (min)" :value="timings.prep"></v-text-field> 
-                   </v-flex>
-                  <v-flex xs3>
-                    <v-text-field @change="addComponent" label="Kochzeit (min)" append="min" :value="timings.oven"></v-text-field>
-                  </v-flex>
+                    <v-flex xs3>
+                      <v-text-field
+                        @change="addIngredient"
+                        append="min"
+                        label="Zubereitung (min)"
+                        :value="timings.prep"
+                      ></v-text-field>
+                    </v-flex>
+                    <v-flex xs3>
+                      <v-text-field
+                        @change="addIngredient"
+                        label="Kochzeit (min)"
+                        append="min"
+                        :value="timings.oven"
+                      ></v-text-field>
+                    </v-flex>
                   </v-layout>
-                  
-                  
                 </v-form>
               </v-flex>
               <v-flex v-if="!edit" xs12>
                 <h2>Zubereitung</h2>
-               <div v-html="steps"></div>
+                <div v-html="steps"></div>
               </v-flex>
               <v-flex v-else xs12>
                 <h2>Zubereitung</h2>
                 <vue-editor v-model="steps"></vue-editor>
               </v-flex>
             </v-layout>
-            <v-btn absolute dark top right color="grey" icon @click="this.toggleEdit">
-              <v-icon v-if="!edit">settings</v-icon>
-              <v-icon v-else>save</v-icon>
-            </v-btn>
           </v-card-text>
           <v-card-actions>
             <v-spacer></v-spacer>
@@ -108,11 +130,13 @@
 <script>
 export default {
   props: {
-    edit: Boolean
+    edit: Boolean,
+    dialog: Boolean
   },
   data: () => ({
+    dialog: false,
     recipeName: "Hackbraten",
-    components: [
+    ingredients: [
       { name: "Zucker", amount: "450", unit: "g" },
       { name: "Mehl", amount: "1", unit: "kg" }
     ],
@@ -121,13 +145,6 @@ export default {
       prep: 40,
       oven: 80
     },
-    breadcrumbs: [
-      {
-        text: "Übersicht",
-        disabled: false,
-        to: "dashboard"
-      }
-    ],
     units: [
       "g",
       "kg",
@@ -155,21 +172,24 @@ export default {
         this.breadcrumbs.pop();
       }
     },
-    removeComponent() {
-      this.components.pop();
-      if (this.components.length == 0) {
-        this.addComponent();
+    removeIngredient() {
+      this.ingredients.pop();
+      if (this.ingredients.length == 0) {
+        this.addIngredient();
       }
     },
-    addComponent() {
-      let componentDummy = { name: "", amount: "", unit: "" };
-      this.components.push(componentDummy);
+    addIngredient() {
+      let ingredientDummy = { name: "", amount: "", unit: "" };
+      this.ingredients.push(ingredientDummy);
     },
-    clearComponent() {
-      do{
-        this.removeComponent();
-      }while(this.components.length > 1);
-      this.removeComponent(); // call again to add a empty component again
+    clearIngredient() {
+      do {
+        this.removeIngredient();
+      } while (this.ingredients.length > 1);
+      this.removeIngredient(); // call again to add a empty component again
+    },
+    disableDialog() {
+      this.$emit('dialog', false);
     }
   }
 };
