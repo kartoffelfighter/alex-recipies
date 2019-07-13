@@ -10,17 +10,16 @@
         </v-btn>
       </template>
       <v-card>
-        <v-toolbar dark color="primary">
-          <v-btn icon dark @click="dialog = false">
+        <v-system-bar window dark>
+          <v-spacer></v-spacer>
+          <v-btn icon @click="save()">
+            <v-icon>save</v-icon>
+          </v-btn>
+          <v-btn icon @click="dialog = false">
             <v-icon>close</v-icon>
           </v-btn>
-          <v-toolbar-title>Neues Rezept</v-toolbar-title>
-          <v-spacer></v-spacer>
-          <v-toolbar-items>
-            <v-btn dark flat @click="dialog = false">Speichern</v-btn>
-          </v-toolbar-items>
-        </v-toolbar>
-        <recipe edit/>
+        </v-system-bar>
+        <recipe edit dialog />
       </v-card>
     </v-dialog>
   </v-layout>
@@ -43,6 +42,11 @@ export default {
       sound: true,
       widgets: false
     };
+  },
+  methods: {
+    save() {
+      this.dialog = false;
+    }
   }
 };
 </script>
