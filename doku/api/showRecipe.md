@@ -28,5 +28,5 @@
 
 ### payload
 
-`{'recipeName': 'Hackbraten','ingredients': [{'name: 'Zucker','amount':'450', 'unit':'g'},{ 'name':'Mehl', 'amount': '1', 'unit': 'kg' }],'steps': 'This is where your text is', 'timings': {'prep': 40,'oven': 80},'units':["g","kg","ml","l","pck","geh.  EL","gstr. EL","geh.  TL","gstr. TL","Tasse","Prise"]}),`
+`{"title":"Hackbraten","image":null,"ingredients":{"1":{"name":"Zucker","amount":"340","unit":"g"},"2":{"name":"Bier","amount":"2","unit":"l"}},"timings":{"prep":60,"cook":40},"steps":"text<\/html>"}`
 

@@ -49,7 +49,7 @@
 {"preparation":60, "cooking":120}
 
 ### example
-
+`{"token" : "xxx","title":"Hackbraten","image":null,"ingredients":{"1":{"name":"Zucker","amount":"340","unit":"g"},"2":{"name":"Bier","amount":"2","unit":"l"}},"timings":{"prep":60,"cook":40},"steps":"text<\/html>"}`
 
 
 ### return
