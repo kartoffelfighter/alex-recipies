@@ -21,7 +21,7 @@ export default new Router({
       component: dashboard
     },
     {
-      path: '/recipe',
+      path: '/recipe/:id',
       name: 'recipe',
       component: recipe
     }

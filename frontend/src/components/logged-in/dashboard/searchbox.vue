@@ -4,43 +4,23 @@
       <v-card-title class="headline teal lighten-3">
         Suche nach Rezepten
         <v-spacer></v-spacer>
-        <v-btn :disabled="model" color="grey darken-3">Zufällig</v-btn>
+        <v-btn v-if="!random" color="grey darken-3" @click="rand()">Zufällig</v-btn>
+        <v-btn v-else color="grey darken-3" @click="rand()">Nochmal</v-btn>
       </v-card-title>
       <v-card-text>
         <v-autocomplete
           v-model="model"
           :items="items"
-          :loading="isLoading"
           :search-input.sync="search"
           color="white"
           hide-no-data
           hide-selected
-          item-text="Description"
-          item-value="API"
           label="Stichwortsuche"
           placeholder="Käsebrot..."
-          prepend-icon="mdi-database-search"
-          return-object
+          prepend-icon="search"
         ></v-autocomplete>
+        <router-link :disabled="!model" :to="{path: '/recipe/'+this.getRecipeId()}"><v-btn block success >Anzeigen</v-btn></router-link>
       </v-card-text>
-      <v-divider></v-divider>
-      <v-expand-transition>
-        <v-list v-if="model" class="red lighten-3">
-          <v-list-tile v-for="(field, i) in fields" :key="i">
-            <v-list-tile-content>
-              <v-list-tile-title v-text="field.value"></v-list-tile-title>
-              <v-list-tile-sub-title v-text="field.key"></v-list-tile-sub-title>
-            </v-list-tile-content>
-          </v-list-tile>
-        </v-list>
-      </v-expand-transition>
-      <v-card-actions>
-        <v-spacer></v-spacer>
-        <v-btn :disabled="!model" color="grey darken-3" @click="model = null">
-          Suche zurücksetzen
-          <v-icon right>mdi_close_circle</v-icon>
-        </v-btn>
-      </v-card-actions>
     </v-card>
   </v-container>
 </template>
@@ -48,59 +28,30 @@
 
 <script>
 export default {
+  props: {
+    recipeId: String,
+    random: Boolean,
+  },
   data: () => ({
-    descriptionLimit: 60,
     entries: [],
-    isLoading: false,
     model: null,
-    search: null
+    search: null,
   }),
-
   computed: {
-    fields() {
-      if (!this.model) return [];
-
-      return Object.keys(this.model).map(key => {
-        return {
-          key,
-          value: this.model[key] || "n/a"
-        };
-      });
-    },
     items() {
-      return this.entries.map(entry => {
-        const Description =
-          entry.Description.length > this.descriptionLimit
-            ? entry.Description.slice(0, this.descriptionLimit) + "..."
-            : entry.Description;
-
-        return Object.assign({}, entry, { Description });
-      });
+      return this.$store.state.recipeIndex;
     }
   },
-
-  watch: {
-    search(val) {
-      // Items have already been loaded
-      if (this.items.length > 0) return;
-
-      // Items have already been requested
-      if (this.isLoading) return;
-
-      this.isLoading = true;
-
-      // Lazily load input items
-      fetch("https://api.publicapis.org/entries")
-        .then(res => res.json())
-        .then(res => {
-          const { count, entries } = res;
-          this.count = count;
-          this.entries = entries;
-        })
-        .catch(err => {
-          console.log(err);
-        })
-        .finally(() => (this.isLoading = false));
+  methods: {
+    rand() {
+      this.random = true;
+      let min = 0; // minimum recipe id
+      let max = this.items.length; // maximum recipe id, identical to the length of the items array
+      this.recipeId = Math.floor(Math.random() * (max - min + 1)) + min;
+      this.model = this.items[this.recipeId];
+    },
+    getRecipeId(){
+      return this.$store.state.recipeIndex.indexOf(this.model) + 1;
     }
   }
 };

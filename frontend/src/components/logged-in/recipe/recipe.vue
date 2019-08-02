@@ -1,13 +1,12 @@
 <template>
   <v-container grid-list-md>
     <!--  <v-breadcrumbs :items="breadcrumbs" divider=">"></v-breadcrumbs>-->
-    <v-layout row wrap>
+    <v-layout row wrap v-if="recipeName">
       <v-flex xs12>
         <v-system-bar window dark v-if="!dialog">
           <router-link v-if="!dialog" to="/dashboard">
             <v-btn icon>
-              <v-icon >arrow_back</v-icon>
-              
+              <v-icon>arrow_back</v-icon>
             </v-btn>
           </router-link>
           <v-btn v-else icon @clicked="this.$emit(dialog, false)">
@@ -40,7 +39,7 @@
                   <v-card-title dense>Zutaten</v-card-title>
                   <v-divider></v-divider>
                   <v-list v-if="!edit" class="blue-grey darken-1">
-                    <v-list-tile v-for="n in ingredients" :key="n">
+                    <v-list-tile v-for="n in ingredients" :key="n.name">
                       <v-list-tile-content>{{n.name}}</v-list-tile-content>
                       <v-list-tile-content class="align-end">{{ n.amount }} {{n.unit}}</v-list-tile-content>
                     </v-list-tile>
@@ -49,13 +48,13 @@
                     <v-list class="blue-grey darken-1">
                       <v-container
                         v-for="n in ingredients"
-                        :key="n"
+                        :key="n.name"
                         grid-list-xs
                         style="margin-top: -3.5%;"
                       >
                         <v-layout row wrap>
                           <v-flex xs7>
-                            <v-text-field @change="addIngredient()" label="Zutat" :value="n.name"></v-text-field>
+                            <v-text-field @change="ingredients = addIngredient()" label="Zutat" :value="n.name"></v-text-field>
                           </v-flex>
                           <v-flex xs2>
                             <v-text-field label="Menge" :value="n.amount"></v-text-field>
@@ -91,7 +90,7 @@
                   <v-layout row wrap>
                     <v-flex xs3>
                       <v-text-field
-                        @change="addIngredient"
+                        @change="ingredients = addIngredient"
                         append="min"
                         label="Zubereitung (min)"
                         :value="timings.prep"
@@ -99,7 +98,7 @@
                     </v-flex>
                     <v-flex xs3>
                       <v-text-field
-                        @change="addIngredient"
+                        @change="ingredients = addIngredient"
                         label="Kochzeit (min)"
                         append="min"
                         :value="timings.oven"
@@ -124,28 +123,60 @@
         </v-card>
       </v-flex>
     </v-layout>
+    <v-layout v-else>
+      <p>Loading..</p>
+    </v-layout>
+    
   </v-container>
 </template>
 
 <script>
 export default {
   props: {
-    edit: Boolean,
-    dialog: Boolean
+    dialog: Boolean,
+    id: String,
+    recipeName: String,
+    ingredients: Array,
+    steps: String,
+    timings: Array,
+    units: Array
   },
   data: () => ({
-    dialog: false,
-    recipeName: "Hackbraten",
-    ingredients: [
-      { name: "Zucker", amount: "450", unit: "g" },
-      { name: "Mehl", amount: "1", unit: "kg" }
-    ],
-    steps: "This is where your text is",
-    timings: {
-      prep: 40,
-      oven: 80
+    edit: false
+  }),
+  methods: {
+    toggleEdit() {
+      this.edit = !this.edit;
+      if (this.edit) {
+        this.setProperties();
+      }
     },
-    units: [
+    removeIngredient() {
+     this.$store.commit('removeRecipiesIngredient', this.id);
+    },
+    addIngredient() {
+      let temp = this.ingredients;
+      let ingredientDummy = { name: "", amount: "", unit: "" };
+      temp.push(ingredientDummy);
+      return temp;
+    },
+    clearIngredient() {
+      do {
+        this.removeIngredient();
+      } while (this.ingredients.length > 1);
+      this.removeIngredient(); // call again to add a empty component again
+    },
+    disableDialog() {
+      this.$emit("dialog", false);
+    }
+  },
+  mounted: function() {
+    this.recipeName = this.getProperties["recipeName"];
+    this.ingredients = this.getProperties["ingredients"];
+    this.steps = this.getProperties["steps"];
+    this.timings = this.getProperties["timings"];
+    this.id = this.getProperties["id"];
+    this.units = [
       "g",
       "kg",
       "ml",
@@ -157,39 +188,33 @@ export default {
       "gstr. TL",
       "Tasse",
       "Prise"
-    ]
-  }),
-  methods: {
-    toggleEdit() {
-      this.edit = !this.edit;
-      let additional = {
-        text: "Bearbeiten",
-        disabled: true
+    ];
+  },
+  computed: {
+    getProperties() {
+      let id = this.$route.params["id"];
+      let name = this.$store.state.currentRecipies[id].name;
+      let ingredients = this.$store.state.currentRecipies[id].ingredients;
+      let steps = this.$store.state.currentRecipies[id].steps;
+      let timings = this.$store.state.currentRecipies[id].timings;
+
+      return {
+        id: id,
+        recipeName: name,
+        ingredients: ingredients,
+        steps: steps,
+        timings: timings
       };
-      if (this.edit) {
-        this.breadcrumbs.push(additional);
-      } else {
-        this.breadcrumbs.pop();
-      }
     },
-    removeIngredient() {
-      this.ingredients.pop();
-      if (this.ingredients.length == 0) {
-        this.addIngredient();
-      }
-    },
-    addIngredient() {
-      let ingredientDummy = { name: "", amount: "", unit: "" };
-      this.ingredients.push(ingredientDummy);
-    },
-    clearIngredient() {
-      do {
-        this.removeIngredient();
-      } while (this.ingredients.length > 1);
-      this.removeIngredient(); // call again to add a empty component again
-    },
-    disableDialog() {
-      this.$emit('dialog', false);
+    setProperties() {
+      let payload = {
+        recipeName: this.recipeName,
+        ingredients: this.ingredients,
+        steps: this.steps,
+        timings: this.timings
+      };
+      this.$store.commit("editRecipe", this.id, payload);
+      return true;
     }
   }
 };

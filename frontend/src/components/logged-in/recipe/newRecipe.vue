@@ -12,6 +12,8 @@
       <v-card>
         <v-system-bar window dark>
           <v-spacer></v-spacer>
+          Neues Rezept anlegen
+          <v-spacer></v-spacer>
           <v-btn icon @click="save()">
             <v-icon>save</v-icon>
           </v-btn>
