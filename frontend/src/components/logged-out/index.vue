@@ -16,9 +16,9 @@
     <v-footer app>
       <v-spacer></v-spacer>
       <v-flex lg2 md2>
-        <a :to="cookies">Cookies</a> -
+        <!--<a :to="cookies">Cookies</a> -
         <a :to="privacy">Datenschutz</a> -
-        <a :to="imprint">Impressum</a>
+        <a :to="imprint">Impressum</a> -->
       </v-flex>
       <v-spacer></v-spacer>
     </v-footer>

@@ -1,7 +1,6 @@
 <template>
   <v-container grid-list-md>
-    <!--  <v-breadcrumbs :items="breadcrumbs" divider=">"></v-breadcrumbs>-->
-    <v-layout row wrap v-if="recipeName">
+    <v-layout row wrap v-if="name">
       <v-flex xs12>
         <v-system-bar window dark v-if="!dialog">
           <router-link v-if="!dialog" to="/dashboard">
@@ -13,17 +12,19 @@
             <v-icon>close</v-icon>
           </v-btn>
           <v-spacer></v-spacer>
-          <v-btn icon @click="this.toggleEdit">
-            <v-icon v-if="!edit">settings</v-icon>
-            <v-icon v-else>save</v-icon>
+          <v-btn v-if="!edit" icon @click="edit = true">
+            <v-icon>settings</v-icon>
+          </v-btn>
+          <v-btn v-else icon @click="save()">
+            <v-icon>save</v-icon>
           </v-btn>
         </v-system-bar>
         <v-card color="blue-grey lighten-2" dark>
           <v-card-title class="headline blue-grey lighten-3">
             <v-form v-if="edit">
-              <v-text-field :counter="25" label="Titel" :value="recipeName" required></v-text-field>
+              <v-text-field :counter="25" label="Titel" :value="name" required></v-text-field>
             </v-form>
-            <p v-else class="text-xs-center display-3">{{recipeName}}</p>
+            <p v-else class="text-xs-center display-3">{{name}}</p>
           </v-card-title>
           <v-card-text>
             <v-layout row wrap>
@@ -39,7 +40,7 @@
                   <v-card-title dense>Zutaten</v-card-title>
                   <v-divider></v-divider>
                   <v-list v-if="!edit" class="blue-grey darken-1">
-                    <v-list-tile v-for="n in ingredients" :key="n.name">
+                    <v-list-tile v-for="n in ingredients" :key="n">
                       <v-list-tile-content>{{n.name}}</v-list-tile-content>
                       <v-list-tile-content class="align-end">{{ n.amount }} {{n.unit}}</v-list-tile-content>
                     </v-list-tile>
@@ -48,19 +49,19 @@
                     <v-list class="blue-grey darken-1">
                       <v-container
                         v-for="n in ingredients"
-                        :key="n.name"
+                        :key="n"
                         grid-list-xs
                         style="margin-top: -3.5%;"
                       >
                         <v-layout row wrap>
                           <v-flex xs7>
-                            <v-text-field @change="ingredients = addIngredient()" label="Zutat" :value="n.name"></v-text-field>
+                            <v-text-field @change="addIngredient()" label="Zutat" :value="n.name"></v-text-field>
                           </v-flex>
                           <v-flex xs2>
                             <v-text-field label="Menge" :value="n.amount"></v-text-field>
                           </v-flex>
                           <v-flex xs2>
-                            <v-select :items="units" value="n.unit" label="Einheit"></v-select>
+                            <v-select :items="units" :value="n.unit" label="Einheit"></v-select>
                           </v-flex>
                           <v-flex xs1></v-flex>
                         </v-layout>
@@ -124,18 +125,20 @@
       </v-flex>
     </v-layout>
     <v-layout v-else>
-      <p>Loading..</p>
+      <p>Loading..
+        {{name}}
+      </p>
     </v-layout>
-    
   </v-container>
 </template>
 
 <script>
+
 export default {
   props: {
     dialog: Boolean,
     id: String,
-    recipeName: String,
+    name: String,
     ingredients: Array,
     steps: String,
     timings: Array,
@@ -152,13 +155,10 @@ export default {
       }
     },
     removeIngredient() {
-     this.$store.commit('removeRecipiesIngredient', this.id);
+      this.$store.commit("removeIngredient", this.id);
     },
     addIngredient() {
-      let temp = this.ingredients;
-      let ingredientDummy = { name: "", amount: "", unit: "" };
-      temp.push(ingredientDummy);
-      return temp;
+      this.ingredients.push({ name: "", amount: "", unit: "" });
     },
     clearIngredient() {
       do {
@@ -171,11 +171,12 @@ export default {
     }
   },
   mounted: function() {
-    this.recipeName = this.getProperties["recipeName"];
-    this.ingredients = this.getProperties["ingredients"];
-    this.steps = this.getProperties["steps"];
-    this.timings = this.getProperties["timings"];
-    this.id = this.getProperties["id"];
+    let id =  this.$route.params["id"];
+    this.name = this.computeName.get(id);
+    //this.ingredients = this.getProperties["ingredients"];
+    //this.steps = this.getProperties["steps"];
+    //this.timings = this.getProperties["timings"];
+    //this.id = this.getProperties["id"];
     this.units = [
       "g",
       "kg",
@@ -191,31 +192,11 @@ export default {
     ];
   },
   computed: {
-    getProperties() {
-      let id = this.$route.params["id"];
-      let name = this.$store.state.currentRecipies[id].name;
-      let ingredients = this.$store.state.currentRecipies[id].ingredients;
-      let steps = this.$store.state.currentRecipies[id].steps;
-      let timings = this.$store.state.currentRecipies[id].timings;
-
-      return {
-        id: id,
-        recipeName: name,
-        ingredients: ingredients,
-        steps: steps,
-        timings: timings
-      };
-    },
-    setProperties() {
-      let payload = {
-        recipeName: this.recipeName,
-        ingredients: this.ingredients,
-        steps: this.steps,
-        timings: this.timings
-      };
-      this.$store.commit("editRecipe", this.id, payload);
-      return true;
-    }
+   computeName: {
+     get(id){
+       return this.$store.getters.recipeName(id)
+     }
+   }
   }
 };
 </script>
