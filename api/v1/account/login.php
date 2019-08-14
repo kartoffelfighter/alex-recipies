@@ -30,11 +30,6 @@ $user = new USER($db, $password_algorithmus);
 
 $user->token = $data->token;    // this is the currently logged in users token
 
-// this is the new users information
-$user->email = $data->email;
-$user->password = $data->password;
-
-
 $token  = isset($data->token) ? $data->token : "";
 
 
@@ -45,7 +40,7 @@ if ($token) {
     if ($user->validateToken()) {       // check if the token is stored in the database
         try {
             $decoded = JWT::decode($token, $key, $alg);
-                                                         // check if token is already expired
+            // check if token is already expired
             if ($decoded->data->expires < time()) {
                 throw new Exception('token expired');
             }
@@ -58,12 +53,15 @@ if ($token) {
                 )
             );
         } catch (Exception $e) {
+            if ($user->destroyToken()) {
+                die("destruction failed");
+            }
             http_response_code(401);
             echo json_encode(
                 array(
                     "bool" => false,
                     "message" => "Access denied, token invalid",
-                    "error" => $e->getMessage()
+                    "error" => $e->getMessage() .  ", destroyed the token!"
                 )
             );
         }
@@ -78,6 +76,10 @@ if ($token) {
     }
 } else {
     // email + password login
+
+        // 2019-08-14: set email and password here, so we won't get an error message if just a token login is performed
+    $user->email = $data->email;
+    $user->password = $data->password;
 
     if ($user->login()) {
         // log in the user, generate a token, store the token, give the token and the users information to the requestor
@@ -106,7 +108,9 @@ if ($token) {
             array(
                 "bool" => true,
                 "message" => "Login succeed",
+                "id" => $user->id,
                 "token" => $jwt,
+                "lifetime" => strtotime("+ " . $valid_login_time . " days")
             )
         );
     } else {
