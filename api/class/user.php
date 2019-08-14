@@ -246,6 +246,26 @@ class USER
         return true;
     }
 
+    public function destroyToken()
+    {
+        if (!isset($this->token)) {
+            $this->error = "No token set!";
+            return false;
+        }
+
+        $query = "UPDATE " . $this->table_name . "SET token = NULL WHERE token = :token";
+        $this->sanitze();
+        $stmt = $this->con->prepare($query);
+        $stmt->bindParam(":token", $this->token);
+
+
+        if ($stmt->execute() === false) {
+            $this->error = $stmt->errorInfo();
+            return false;
+        }
+        return true;
+    }
+
     public function update()
     {
         if (!isset($this->id)) {
