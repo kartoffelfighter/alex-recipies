@@ -6,13 +6,11 @@
           <v-text-field v-model="email" :rules="emailRules" label="E-mail" required></v-text-field>
           <v-text-field v-model="password" label="Passwort" :rules="passwordRules" type="password"></v-text-field>
           <v-divider></v-divider>
-
           <v-btn :disabled="!valid" color="success" type="submit">Anmelden</v-btn>
           <v-btn color="warning" disabled>Passwort vergessen</v-btn>
         </v-form>
       </v-flex>
     </v-layout>
-
   </v-container>
 </template>
 

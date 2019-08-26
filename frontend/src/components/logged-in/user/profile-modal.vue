@@ -1,14 +1,6 @@
 <template>
   <v-layout row justify-center>
     <v-dialog v-model="dialog" persistent max-width="600px">
-      <template v-slot:activator="{ on }">
-        <v-btn color="orange lighten-2" depressed v-on="on">
-          <v-icon dark left>settings</v-icon>Account
-        </v-btn>
-        <v-btn color="green lighten-2" depressed v-on="on" @click="create = true">
-          <v-icon dark left>add</v-icon>Benutzer
-        </v-btn>
-      </template>
       <v-card>
         <v-form @submit.prevent="register()">
           <v-card-title>
@@ -47,12 +39,7 @@
           <v-card-actions>
             <v-spacer></v-spacer>
             <v-btn color="blue darken-1" flat @click="dialog = false">Verwerfen</v-btn>
-            <v-btn
-              type="submit"
-              color="blue darken-1"
-              flat
-              @click="dialog = false, create = false"
-            >Speichern</v-btn>
+            <v-btn type="submit" color="blue darken-1" flat>Speichern</v-btn>
           </v-card-actions>
         </v-form>
       </v-card>
@@ -64,11 +51,11 @@
 export default {
   props: {
     create: Boolean,
-    user: Array
   },
   data: () => ({
-    dialog: false,
-    create: false
+    registerModal: false,
+    updateModal: true,
+    dialog: true,
   }),
   computed: {
     token() {
@@ -76,6 +63,14 @@ export default {
     }
   },
   methods: {
+    submit() {
+      if(this.registerModal){
+        this.register();
+      }
+      if(this.profileModal){
+        this.update();
+      }
+    },
     register() {
       this.$store.dispatch("REGISTER", {
         token: this.token,
@@ -85,6 +80,17 @@ export default {
         password: this.password
       });
     }
+  },
+  mounted: function() {
+    this.$store.watch(
+      state => state.userModal,
+      () => {
+        this.registerModal = this.$store.getters.ISREGISTERMODAL;
+        this.profileModal = this.$store.getters.ISPROFILEMODAL;
+        this.dialog = true;
+        return
+      }
+    );
   }
 };
 </script>

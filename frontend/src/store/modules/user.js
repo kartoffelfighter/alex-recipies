@@ -1,17 +1,15 @@
 import Axios from 'axios'
 
-const API = 'http://localhost/api/v1/account/';
+const API = 'https://recipes.marcfischer.org/api/v1/account/';
 const header = {
     'cache-control': 'no-cache',
     Connection: 'keep-alive',
     'content-length': '51',
     'accept-encoding': 'gzip, deflate',
-    Host: 'localhost',
-    'Postman-Token': '620ecb30-3f15-4de6-8ac7-b9ddaa99bc46,a960a43f-45d3-4890-985b-2948b08a99fd',
     'Cache-Control': 'no-cache',
     Accept: '*/*',
-    'User-Agent': 'PostmanRuntime/7.15.0',
-    'Content-Type': 'text/plain'
+    'User-Agent': 'recipes-frontend/V0.1.0',
+    'Content-Type': 'application/json'
 };
 
 const user = {
@@ -24,6 +22,10 @@ const user = {
         tokenLifeTime: null,
         status: null,
         loggedIn: false,
+
+        userModal: false,
+        profileModal: false,
+        newUserModal: false,
     },
 
     getters: {
@@ -44,6 +46,12 @@ const user = {
         },
         ISLOGGEDIN: state => {
             return state.loggedIn
+        },
+        ISPROFILEMODAL: state => {
+            return state.profileModal
+        },
+        ISNEWUSERMODAL: state => {
+            return state.newUserModal
         }
     },
 
@@ -77,6 +85,14 @@ const user = {
         LOGIN_ERR: (state, status) => {
             state.status = status;
             state.loggedIn = false;
+        },
+        TOGGLE_NEWUSERMODAL: (state) => {
+            state.userModal = !state.userModal,
+            state.newUserModal = !state.newUserModal
+        },
+        TOGGLE_PROFILEMODAL: (state) => {
+            state.userModal = !state.userModal,
+            state.profileModal = !state.profileModal
         }
     },
 
@@ -100,7 +116,7 @@ const user = {
                         commit('SET_ID', id)
                         commit('LOGGED_IN')
                         commit('LOAD')
-                        commit('DO_NOTIFY', "Login erfolgreich!")
+                        commit('DO_NOTIFY', "Login erfolgreich!", 10000)
                         resolve(resp)
                     })
                     .catch(err => {
@@ -127,6 +143,25 @@ const user = {
                         commit('DO_NOTIFY', "Fehler beim anlegen des Benutzers!")
                         reject(err)
                     })
+            })
+        },
+        SHOW({commit}, data) {
+            return new Promise((resolve, reject) => {
+                commit('LOAD')
+                Axios({
+                    url: API + 'read.php',
+                    method: 'POST',
+                    header: header,
+                    data: JSON.stringify(data)
+                })
+                .then(resp=>{
+                    // eslint-disable-next-line
+                    console.log(resp)
+                })
+                .catch(err => {
+                    commit('DO_NOTIFY',"Something went wrong")
+                    reject(err)
+                })
             })
         }
     }

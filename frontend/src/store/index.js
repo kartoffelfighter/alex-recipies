@@ -13,6 +13,7 @@ const store = new Vuex.Store({
     loading: false,
     notify: false,
     notifyMSG: null,
+    notifyTimeout: 6000,
   },
   getters: {
     LOADING: state => {
@@ -23,15 +24,19 @@ const store = new Vuex.Store({
     },
     NOTIFYMSG: state => {
       return state.notifyMSG
+    },
+    NOTIFYTIMEOuT: state => {
+      return state.notifyTimeout
     }
   },
   mutations: {
     LOAD: (state) => {
       state.loading = !state.loading;
     },
-    DO_NOTIFY: (state, msg) => {
+    DO_NOTIFY: (state, msg, timeout) => {
       state.notify = true,
-      state.notifyMSG = msg
+      state.notifyMSG = msg,
+      state.timeout = timeout
     },
     DISMISS_NOTIFY: (state) => {
       state.notify = false
